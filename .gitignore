@@ -1,0 +1,24 @@
+
+# paste the content above, save and exit# Python cache / temp files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Environment files
+.env
+*.env
+
+# VSCode / IDE settings
+.vscode/
+.idea/
+
+# Mac / Windows metadata
+.DS_Store
+Thumbs.db
+
+# loggfiles
+*.log

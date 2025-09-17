@@ -1,0 +1,38 @@
+#!/bin/sh
+# jnb - starta Jupyter Notebook på Android via Pydroid
+# Felsäker version med loggning och automatisk Chrome-start
+
+# --- KONFIGURATION ---
+WORKDIR="/storage/emulated/0/Prog/Utils"
+LOGFILE="$WORKDIR/jupyter.log"
+
+# --- SE TILL ATT KATALOG OCH LOGG FIL FINNS ---
+mkdir -p "$WORKDIR"
+touch "$LOGFILE"
+
+# --- STARTA JUPYTER NOTEBOOK ---
+# cd "$WORKDIR"
+
+# Starta servern och logga allt (bakgrundsprocess)
+python3 -m notebook --no-browser 2>&1 | tee "$LOGFILE" &
+
+# Låt servern starta lite
+sleep 2
+
+# --- HITTAR PORTEN AUTOMATISKT UTAN -P ---
+#PORT=$(grep 'http://127.0.0.1:' "$LOGFILE" | tail -1 | sed 's|http://127\.0\.0\.1:||')
+PORT=$(grep -o "127\.0\.0\.1:[0-9]\+" "$LOGFILE" | head -n1 | cut -d: -f2)
+echo "-----------------------"
+echo $PORT 
+echo "-----------------------"
+sleep 4
+if [ -n "$PORT" ]; then
+    # Försök öppna Chrome på korrekt port
+    am start -a android.intent.action.VIEW -d "http://127.0.0.1:$PORT" >> "$LOGFILE" 2>&1 || \
+    echo "👉 Kunde inte öppna Chrome automatiskt. Öppna istället manuellt: http://127.0.0.1:$PORT" | tee -a "$LOGFILE"
+else
+    echo "⚠️ Kunde inte hitta Jupyter-porten i loggen. Kontrollera $LOGFILE" | tee -a "$LOGFILE"
+fi
+
+# --- KLART ---
+echo "Jupyter startat på port: $PORT (se logg för detaljer)"

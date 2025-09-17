@@ -1,0 +1,25 @@
+#!/bin/sh
+# jnb - starta Jupyter Notebook från aktuell katalog och logga
+
+LOGFILE="$PWD/jupyter.log"
+
+# Starta Jupyter i bakgrunden, inga token, logga utdata
+jupyter-notebook --no-browser --NotebookApp.token='' >> "$LOGFILE" 2>&1 &
+
+# Vänta max 10 sekunder på att porten dyker upp i loggen
+PORT=""
+TIMEOUT=10
+COUNT=0
+while [ -z "$PORT" ]; do
+    sleep 1
+ #   PORT=$(grep -o "127\.0\.0\.1:[0-9]\+/tree" "$LOGFILE" | tail -n1 | sed -E 's#.*/([0-9]+)/tree#\1#')
+PORT=$(grep -oE "127\.0\.0\.1:[0-9]+|localhost:[0-9]+" "$LOGFILE" | tail -n1 | cut -d: -f2) 
+    echo "--------------  $PORT ------------"
+    COUNT=$((COUNT+1))
+    if [ $COUNT -ge $TIMEOUT ]; then
+        echo "❌ Kunde inte hitta port efter $TIMEOUT sekunder" | tee -a "$LOGFILE"
+        exit 1
+    fi
+done
+
+echo "✅ Jupyter Notebook körs på http://127.0.0.1:$PORT/tree" | tee -a "$LOGFILE"
