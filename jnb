@@ -1,25 +1,42 @@
 #!/bin/sh
-# jnb - starta Jupyter Notebook från aktuell katalog och logga
+# jnb - start Jupyter Notebook server from chosen directory
+# logs to jupyter.log, detects port, opens Chrome automatically
 
-LOGFILE="$PWD/jupyter.log"
+LOGFILE="$HOME/jupyter.log"
+WORKDIR="$1"
 
-# Starta Jupyter i bakgrunden, inga token, logga utdata
-jupyter-notebook --no-browser --NotebookApp.token='' >> "$LOGFILE" 2>&1 &
+if [ -z "$WORKDIR" ]; then
+    WORKDIR="$PWD"
+fi
 
-# Vänta max 10 sekunder på att porten dyker upp i loggen
+echo "Starting Jupyter in $WORKDIR" | tee -a "$LOGFILE"
+
+# Start Jupyter in background, log output
+jupyter-notebook --no-browser --notebook-dir="$WORKDIR" >> "$LOGFILE" 2>&1 &
+
+JNB_PID=$!
+
+# Wait for the server to start and detect the port
 PORT=""
-TIMEOUT=10
 COUNT=0
-while [ -z "$PORT" ]; do
+while [ -z "$PORT" ] && [ $COUNT -lt 10 ]; do
     sleep 1
- #   PORT=$(grep -o "127\.0\.0\.1:[0-9]\+/tree" "$LOGFILE" | tail -n1 | sed -E 's#.*/([0-9]+)/tree#\1#')
-PORT=$(grep -oE "127\.0\.0\.1:[0-9]+|localhost:[0-9]+" "$LOGFILE" | tail -n1 | cut -d: -f2) 
-    echo "--------------  $PORT ------------"
     COUNT=$((COUNT+1))
-    if [ $COUNT -ge $TIMEOUT ]; then
-        echo "❌ Kunde inte hitta port efter $TIMEOUT sekunder" | tee -a "$LOGFILE"
-        exit 1
-    fi
+# change back.PORT (see jnb.BUP)
+#    PORT=$(grep -o "127\.0\.0\.1:[0-9]\+/tree" "$LOGFILE" | tail -n1 | sed -E 's#.*/([0-9]+)/tree#\1#')
+PORT=$(grep -oE "127\.0\.0\.1:[0-9]+|localhost:[0-9]+" "$LOGFILE" | tail -n1 | cut -d: -f2)
 done
-
-echo "✅ Jupyter Notebook körs på http://127.0.0.1:$PORT/tree" | tee -a "$LOGFILE"
+#
+echo "---------------- $PORT -------------"
+#
+if [ -n "$PORT" ]; then
+    echo "Jupyter running on port $PORT" | tee -a "$LOGFILE"
+    echo "Opening Chrome at http://127.0.0.1:$PORT/tree" | tee -a "$LOGFILE"
+    am start -a android.intent.action.VIEW \
+             -d "http://127.0.0.1:$PORT/tree" \
+             com.android.chrome >> "$LOGFILE" 2>&1
+else
+    echo "Could not determine Jupyter port, skipping Chrome launch." | tee -a "$LOGFILE"
+fi
+# Test utan
+#wait $JNB_PID
