@@ -1,38 +1,28 @@
 #!/bin/sh
-# jnb - starta Jupyter Notebook på Android via Pydroid
-# Felsäker version med loggning och automatisk Chrome-start
+# jnb - starta Jupyter Notebook från WORKDIR och logga
 
-# --- KONFIGURATION ---
-WORKDIR="/storage/emulated/0/Prog/Utils"
+# Ange här var loggar ska hamna
+WORKDIR="$HOME"
 LOGFILE="$WORKDIR/jupyter.log"
 
-# --- SE TILL ATT KATALOG OCH LOGG FIL FINNS ---
-mkdir -p "$WORKDIR"
-touch "$LOGFILE"
+# Rensa loggfilen innan vi startar
+> "$LOGFILE"
 
-# --- STARTA JUPYTER NOTEBOOK ---
-# cd "$WORKDIR"
+# Starta Jupyter i bakgrunden, inga token, logga utdata
+jupyter-notebook --no-browser --NotebookApp.token='' >> "$LOGFILE" 2>&1 &
 
-# Starta servern och logga allt (bakgrundsprocess)
-python3 -m notebook --no-browser 2>&1 | tee "$LOGFILE" &
+# Vänta max 10 sekunder på att porten dyker upp i loggen
+PORT=""
+TIMEOUT=10
+COUNT=0
+while [ -z "$PORT" ]; do
+    sleep 1
+    PORT=$(grep -oE "127\.0\.0\.1:[0-9]+|localhost:[0-9]+" "$LOGFILE" | tail -n1 | cut -d: -f2)
+    COUNT=$((COUNT+1))
+    if [ $COUNT -ge $TIMEOUT ]; then
+        echo "❌ Kunde inte hitta port efter $TIMEOUT sekunder" | tee -a "$LOGFILE"
+        exit 1
+    fi
+done
 
-# Låt servern starta lite
-sleep 2
-
-# --- HITTAR PORTEN AUTOMATISKT UTAN -P ---
-#PORT=$(grep 'http://127.0.0.1:' "$LOGFILE" | tail -1 | sed 's|http://127\.0\.0\.1:||')
-PORT=$(grep -o "127\.0\.0\.1:[0-9]\+" "$LOGFILE" | head -n1 | cut -d: -f2)
-echo "-----------------------"
-echo $PORT 
-echo "-----------------------"
-sleep 4
-if [ -n "$PORT" ]; then
-    # Försök öppna Chrome på korrekt port
-    am start -a android.intent.action.VIEW -d "http://127.0.0.1:$PORT" >> "$LOGFILE" 2>&1 || \
-    echo "👉 Kunde inte öppna Chrome automatiskt. Öppna istället manuellt: http://127.0.0.1:$PORT" | tee -a "$LOGFILE"
-else
-    echo "⚠️ Kunde inte hitta Jupyter-porten i loggen. Kontrollera $LOGFILE" | tee -a "$LOGFILE"
-fi
-
-# --- KLART ---
-echo "Jupyter startat på port: $PORT (se logg för detaljer)"
+echo "✅ Jupyter Notebook körs på http://127.0.0.1:$PORT/tree" | tee -a "$LOGFILE"
