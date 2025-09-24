@@ -1,4 +1,13 @@
+# Testfiles
+tst
+*.tst
+test
+kalle
 
+# loggfiles
+*.log
+
+#--------- System provided ignore ---------
 # paste the content above, save and exit# Python cache / temp files
 __pycache__/
 *.pyc
@@ -20,5 +29,3 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
-# loggfiles
-*.log

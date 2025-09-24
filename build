@@ -1,0 +1,16 @@
+#!/bin/sh
+# Build tp copy to where scripts are run
+# 
+if [ -z "$1" ]; then
+   echo "Must specify a script in ./Prog/Utils"
+   exit 1
+fi
+
+case "$1" in
+  x|xj|g) 
+  cp $1 /storage/emulated/0/.
+  ;;
+  *) 
+  echo "$1 not in build"
+  ;;
+esac
