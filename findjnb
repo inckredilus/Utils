@@ -1,0 +1,10 @@
+#!/bin/sh
+# Open port in Chrome tab (where eg jnb is running
+PORT="$1"
+echo "------- $PORT -------"
+if [ -z $PORT ]; then
+   echo "No port nr given in argument "
+else
+   echo "Starting am....."
+   am start -a android.intent.action.VIEW  -d  "http://127.0.0.1:$PORT/tree"  com.android.chrome
+fi

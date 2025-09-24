@@ -1,6 +1,9 @@
 #!/bin/sh
-# jnb - start Jupyter Notebook server from chosen directory
-# logs to jupyter.log, detects port, opens Chrome automatically
+# Start Jupyter Notebook server
+# Document root in arg or current directory
+# logs to ~/.jupyter.log to detects port 
+# Creates launch script with port for Chrome 
+# 
 
 LOGFILE="$HOME/jupyter.log"
 WORKDIR="$1"
@@ -9,7 +12,7 @@ if [ -z "$WORKDIR" ]; then
     WORKDIR="$PWD"
 fi
 
-echo "Starting Jupyter in $WORKDIR" | tee -a "$LOGFILE"
+echo "Start Jupyter in $WORKDIR"  | tee  "$LOGFILE"
 
 # Start Jupyter in background, log output
 jupyter-notebook --no-browser --notebook-dir="$WORKDIR" >> "$LOGFILE" 2>&1 &
@@ -22,21 +25,24 @@ COUNT=0
 while [ -z "$PORT" ] && [ $COUNT -lt 10 ]; do
     sleep 1
     COUNT=$((COUNT+1))
-# change back.PORT (see jnb.BUP)
-#    PORT=$(grep -o "127\.0\.0\.1:[0-9]\+/tree" "$LOGFILE" | tail -n1 | sed -E 's#.*/([0-9]+)/tree#\1#')
-PORT=$(grep -oE "127\.0\.0\.1:[0-9]+|localhost:[0-9]+" "$LOGFILE" | tail -n1 | cut -d: -f2)
+    PORT=$(grep -oE "127\.0\.0\.1:[0-9]+|localhost:[0-9]+" "$LOGFILE" | tail -n1 | cut -d: -f2)
 done
-#
-echo "---------------- $PORT -------------"
-#
+
 if [ -n "$PORT" ]; then
+
+    URL="http://127.0.0.1:$PORT/tree"
     echo "Jupyter running on port $PORT" | tee -a "$LOGFILE"
-    echo "Opening Chrome at http://127.0.0.1:$PORT/tree" | tee -a "$LOGFILE"
-    am start -a android.intent.action.VIEW \
-             -d "http://127.0.0.1:$PORT/tree" \
-             com.android.chrome >> "$LOGFILE" 2>&1
+    echo "Jupyter accessible at URL $URL" | tee -a "$LOGFILE"
+    echo "Jupyter Server Proceas ID is $JNB_PID" | tee -a $LOGFILE 
+    cat > "$WORKDIR/launch" <<EOF
+#!/bin/sh
+am start -a android.intent.action.VIEW -d  "$URL" com.android.chrome
+EOF
+  
+    echo "To launch in Chrome from Termux type:"
+    echo "sh ./launch  in $WORKDIR"
 else
-    echo "Could not determine Jupyter port, skipping Chrome launch." | tee -a "$LOGFILE"
+    echo "Could not determine Jupyter port" | tee -a "$LOGFILE"
 fi
 # Test utan
 #wait $JNB_PID

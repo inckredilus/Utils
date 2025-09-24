@@ -1,0 +1,54 @@
+#
+# Alias for this script and cd to back here
+echo "Jupyter Notebook wrapper"
+alias x='. /storage/emulated/0/x'
+alias xj='. /storage/emulated/0/xj'
+alias xx='cd /storage/emulated/0;PS1="\w \$ "'
+
+echo "Choose project or type directory name:"
+echo "1) Python"
+echo "2) Jupyter"
+echo "3) MDdocs"
+echo "4) Utils"
+
+printf "Enter choice: "
+read choice
+
+case "$choice" in
+  ""|1)   # Default = Python
+    cd /storage/emulated/0/Prog/Python
+    ;;
+  2)
+    cd /storage/emulated/0/Prog/Jupyter
+    ;;
+  3)
+    cd /storage/emulated/0/Prog/MDdocs
+    ;;
+  4)
+    cd /storage/emulated/0/Prog/Utils
+    ;;
+  *)
+    target="/storage/emulated/0/Prog/$choice"
+    if [ -d "$target" ]; then
+        cd "$target"
+    else
+        echo "Directory $choice' not found in Prog:"
+      ls /storage/emulated/0/Prog/
+    fi
+    exit 1
+    ;;
+esac
+
+# Start jupyter notebook server
+
+if env | grep -qi pydroid; then
+    echo "Inside Pydroid – creating Jupyter launch script to RUN FROM A Termux sh"
+    sh /storage/emulated/0/Prog/Utils/jnb
+else
+    echo "Not in Pydroid – try to launch Jupyter in Chrome tab."
+    . launch
+fi
+
+
+# Set prompt to basename only
+PS1='\W \$ '
