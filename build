@@ -10,6 +10,9 @@ case "$1" in
   x|xj|g) 
   cp $1 /storage/emulated/0/.
   ;;
+  evnote.sh)
+  cp $1 /data/data/com.termux/files/home/. 
+  ;;
   *) 
   echo "$1 not in build"
   ;;
