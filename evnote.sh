@@ -1,16 +1,31 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# EV logging script using Termux:API dialogs
 
-# Get timestamp
-now=$(date '+%Y-%m-%d %H:%M')
+LOGFILE=~/ev_debug.log
+OUTFILE=~/ev_data.txt
 
-# Ask for charge %
-charge=$(termux-dialog text --title "Enter charge %" | jq -r '.text')
-# Ask for remaining km
-km=$(termux-dialog text --title "Enter remaining km" | jq -r '.text')
+{
+    echo "Script started at $(date)"
+    timestamp=$(date "+%Y-%m-%d %H:%M")
+    echo "Timestamp: $timestamp"
 
-# Save to log file in home directory
-echo "$now | Charge: $charge% | Range: $km km" >> ~/ev_notes.txt
+    # Ask for charge %
+    raw_charge=$(termux-dialog -t "Enter charge (%)")
+    echo "Raw charge dialog output: $raw_charge"
+    charge=$(echo "$raw_charge" | jq -r '.text')
 
-# Optional: quick confirmation notification
-termux-notification --title "EV Log" --content "Logged $charge% / $km km"
+    # Ask for km
+    raw_km=$(termux-dialog -t "Enter remaining km")
+    echo "Raw km dialog output: $raw_km"
+    km=$(echo "$raw_km" | jq -r '.text')
+
+    # Save to file if input is not empty
+    if [ -n "$charge" ] || [ -n "$km" ]; then
+        echo "$timestamp | Charge: ${charge}% | KM: ${km}" >> "$OUTFILE"
+        echo "Saved note to $OUTFILE"
+    else
+        echo "No input provided"
+    fi
+
+    echo "Script finished"
+    echo ""
+} >> "$LOGFILE" 2>&1
