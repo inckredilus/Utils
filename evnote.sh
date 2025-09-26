@@ -21,11 +21,16 @@ OUTFILE=~/ev_data.txt
     echo "KM code: $code_km, text: $km"
 
     # Only save if both dialogs were OK
-    if [ "$code_charge" = "-1" ] && [ "$code_km" = "-1" ]; then
-        echo "$timestamp | Charge: ${charge}% | KM: ${km}" >> "$OUTFILE"
-        echo "Saved note to $OUTFILE"
+    if [ "$code_charge" = "-1" ] && [ "$code_km" = "-1" ] && \
+         [ "$charge" != "null" ] && [ "$km" != "null" ] && \
+         [ -n "$charge" ] && [ -n "$km" ]; then
+       echo "$timestamp | Charge: ${charge}% | KM: ${km}" >> "$OUTFILE"
+       echo "Saved note to $OUTFILE"
     else
-        echo "Canceled by user, nothing saved"
+        termux-dialog -t "No data saved" -i "Discarding due to canceled \ 
+        or empty entries" >/dev/null
+        echo "No values were written to the fils"
+        echo "$code_charge - $charge | $code_km - $km"
     fi
 
     echo "Script finished"
