@@ -5,17 +5,19 @@ OUTFILE=~/ev_data.txt
 
 {
     echo "Script started at $(date)"
-    timestamp=$(date "+%Y-%m-%d %H:%M")
+#    echo "Timestamp: $(date "+%Y-%m-%d %H:%M")"
+    timestamp=$(date "+%d/%m %H:%M")
     echo "Timestamp: $timestamp"
 
+
     # Charge dialog
-    raw_charge=$(termux-dialog -t "Enter charge (%)")
+    raw_charge=$(termux-dialog -n -t "Enter charge (%)")
     code_charge=$(echo "$raw_charge" | jq -r '.code')
     charge=$(echo "$raw_charge" | jq -r '.text')
     echo "Charge code: $code_charge, text: $charge"
 
     # KM dialog
-    raw_km=$(termux-dialog -t "Enter remaining km")
+    raw_km=$(termux-dialog -n -t "Enter remaining km")
     code_km=$(echo "$raw_km" | jq -r '.code')
     km=$(echo "$raw_km" | jq -r '.text')
     echo "KM code: $code_km, text: $km"
@@ -26,10 +28,19 @@ OUTFILE=~/ev_data.txt
          [ -n "$charge" ] && [ -n "$km" ]; then
        echo "$timestamp | Charge: ${charge}% | KM: ${km}" >> "$OUTFILE"
        echo "Saved note to $OUTFILE"
+
+   termux-notification \
+      --id "evdata" \
+      --title "New EV data saved" \
+      --content "Tap to review latest entries" \
+      --button1 "Show data" \
+      --button1-action "sh $HOME/.shortcuts/evnote_show.sh" \
+      --priority high
+
     else
         termux-dialog -t "No data saved" -i "Discarding due to canceled \ 
         or empty entries" >/dev/null
-        echo "No values were written to the fils"
+        echo "No values were written to the file"
         echo "$code_charge - $charge | $code_km - $km"
     fi
 

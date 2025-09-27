@@ -1,19 +1,20 @@
 #!/bin/sh
-# Build tp copy to where scripts are run
+# Build - installs scripts where they run
 # 
-#if [ -z "$1" ]; then
-#   echo "Must specify a script in ./Prog/Utils"
-#   exit 1
-#fi
 
 case "$1" in
-  "") echo "Must specify a script in ./Prog/Utils"
+  "") echo "Must specify a script in .../Prog/Utils"
   ;;
-  x|xj|g) 
+  x|xj) 
   cp $1 /storage/emulated/0/.
   ;;
-  evnote.sh)
-  cp $1 /data/data/com.termux/files/home/. 
+  g) 
+  cp $1 /storage/emulated/0/.
+  cp $1 $HOME/.
+  ;;
+  evnote|evnote.sh)
+  cp evnote.sh /data/data/com.termux/files/home/.shortcuts
+  cp evnote_show.sh /data/data/com.termux/files/home/.shortcuts
   ;;
   *) 
   echo "$1 not in build"
