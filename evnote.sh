@@ -1,7 +1,9 @@
 #!/data/data/com.termux/files/usr/bin/bash
+# Start Termux dialog to record EV data to file
 
-LOGFILE=~/ev_debug.log
-OUTFILE=~/ev_data.txt
+LOGFILE=$HOME/ev_debug.log
+OUTFILE=$HOME/ev_data.txt
+USRBIN=$HOME/bin
 
 {
     echo "Script started at $(date)"
@@ -26,17 +28,22 @@ OUTFILE=~/ev_data.txt
     if [ "$code_charge" = "-1" ] && [ "$code_km" = "-1" ] && \
          [ "$charge" != "null" ] && [ "$km" != "null" ] && \
          [ -n "$charge" ] && [ -n "$km" ]; then
-       echo "$timestamp | Charge: ${charge}% | KM: ${km}" >> "$OUTFILE"
+       echo "${timestamp}- ... ${charge}%- ${km}-" >> "$OUTFILE"
        echo "Saved note to $OUTFILE"
 
-   termux-notification \
-      --id "evdata" \
-      --title "New EV data saved" \
-      --content "Tap to review latest entries" \
-      --button1 "Show data" \
-      --button1-action "sh $HOME/.shortcuts/evnote_show.sh" \
-      --priority high
-
+    # Show data or Copy to clipboard
+       termux-notification \
+       --id "evdata" \
+       --title "New EV data saved" \
+       --content "Tap to review latest entries" \
+       --button1 "Show" \
+       --button1-action "sh $USRBIN/evnote_show.sh" \
+       --button2 "Copy" \
+       --button2-action "sh $USRBIN/evnote_show.sh copy" \
+       --button3 "Clean" \
+       --button3-action "sh $USRBIN/evnote_show.sh clean" \
+       --priority high
+#      --button2-action "sh $HOME/.shortcuts/evnote_show.sh copy"
     else
         termux-dialog -t "No data saved" -i "Discarding due to canceled \ 
         or empty entries" >/dev/null

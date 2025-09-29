@@ -1,5 +1,5 @@
 #!/bin/sh
-# Build - installs scripts where they run
+# Build - installs scripts where they should run
 # 
 
 case "$1" in
@@ -10,13 +10,20 @@ case "$1" in
   ;;
   g) 
   cp $1 /storage/emulated/0/.
-  cp $1 $HOME/.
+  cp $1 $HOME/bin/.
   ;;
   evnote|evnote.sh)
-  cp evnote.sh /data/data/com.termux/files/home/.shortcuts
-  cp evnote_show.sh /data/data/com.termux/files/home/.shortcuts
+  cp evnote.sh $HOME/.shortcuts/.
+  cp evnote_show.sh $HOME/bin/.
+  echo "copied evnote* to \$HOME/.shortcuts and \$HOME/bin"
+  chmod 750 $HOME/.shortcuts/evnote.sh
+  chmod 750 $HOME/bin/evnote_show.sh
   ;;
   *) 
-  echo "$1 not in build"
+  if [ -f "$1" ]; then
+    echo "No build defined for '$1'"
+  else
+    echo "No $1 in .../Utils directory"
+  fi
   ;;
 esac
