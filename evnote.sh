@@ -28,7 +28,7 @@ USRBIN=$HOME/bin
     if [ "$code_charge" = "-1" ] && [ "$code_km" = "-1" ] && \
          [ "$charge" != "null" ] && [ "$km" != "null" ] && \
          [ -n "$charge" ] && [ -n "$km" ]; then
-       echo "${timestamp}- ... ${charge}%- ${km}-" >> "$OUTFILE"
+       echo "${timestamp}- ... ${charge}-% ${km}-" >> "$OUTFILE"
        echo "Saved note to $OUTFILE"
 
     # Show data or Copy to clipboard
