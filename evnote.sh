@@ -6,7 +6,7 @@ OUTFILE=$HOME/ev_data.txt
 USRBIN=$HOME/bin
 
 {
-    echo "Script started at $(date)"
+    echo "$(basename $0) started at $(date)"
 #    echo "Timestamp: $(date "+%Y-%m-%d %H:%M")"
     timestamp=$(date "+%d/%m %H:%M")
     echo "Timestamp: $timestamp"
