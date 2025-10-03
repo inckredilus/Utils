@@ -1,22 +1,26 @@
 #!/usr/bin/bash
 # Script to process last line in ~/ev_data.txt,
 # replace placeholders with user-provided values,
-# and save results to debug log, CSV file, and clipboard.
+# update source file, save results to debug log & CSV,
+# copy result to clipboard, and send Termux notification.
 
 INPUT_FILE="$HOME/ev_data.txt"
 DEBUG_FILE="$HOME/ev_debug.log"
 CSV_FILE="$HOME/ev_data.csv"
+USRBIN="$HOME/bin"
+
+# ==== Check if we have a terminal (for widget start) ====
+if [ ! -t 0 ]; then
+  am start -n com.termux/.app.TermuxActivity \
+    -e com.termux.execute.background "$0"
+  exit 0
+fi
 
 # ==== Read values from user ====
-echo "Enter Endtime (hh:mm):"
-read -r A
-#read -r -p "Enter Endtime km " A B C D
-echo "Enter Total km (B):"
-read -r B
-echo "Enter %-loaded (C, number only):"
-read -r C
-echo "Enter km (D):"
-read -r D
+read -r -p "Enter Endtime (hh:mm): " A
+read -r -p "Enter Total km (B): " B
+read -r -p "Enter %-loaded (C, number only): " C
+read -r -p "Enter km (D): " D
 
 # ==== Get last line ====
 last_line=$(tail -n 1 "$INPUT_FILE")
@@ -25,30 +29,41 @@ last_line=$(tail -n 1 "$INPUT_FILE")
 result=$(echo "$last_line" | \
   sed "s/- /-$A /; s/\.\.\./$B/; s/-%/-$C%/; s/-$/-$D/")
 
+# ==== Replace last line in input file with result ====
+tmpfile=$(mktemp)
+head -n -1 "$INPUT_FILE" > "$tmpfile"
+echo "$result" >> "$tmpfile"
+mv "$tmpfile" "$INPUT_FILE"
+
 # ==== a) Write to debug log ====
-echo "$(date '+%Y-%m-%d %H:%M:%S') $result" >> "$DEBUG_FILE"
+script_name=$(basename "$0")
+timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+{
+  echo "[$timestamp] ($script_name)"
+  echo "Result: $result"
+} >> "$DEBUG_FILE" 2>&1
 
 # ==== b) Write to CSV file ====
 # Add header if file does not exist
 if [ ! -f "$CSV_FILE" ]; then
   echo "Date;Duration;Total km;%-loaded;km;" > "$CSV_FILE"
 fi
-# Replace multiple spaces with ";" and add trailing ";"
-#csv_line=$(echo "$result" | sed 's/[[:space:]]\+/\;/g; s/$/;/')
-#result="29/09 19:28-22:11 23456 49-80% 199-399"
+# Convert dd/mm to ISO yyyy-mm-dd and format as CSV
 csv_line=$(echo "$result" \
   | sed -E 's#^([0-9]{2})/([0-9]{2})(.*)#2025-\2-\1\3#' \
   | sed 's/[[:space:]]\+/\;/g; s/$/;/')
-echo "$csv_line"
 echo "$csv_line" >> "$CSV_FILE"
 
 # ==== c) Copy to clipboard ====
-echo -n "$result" | termux-clipboard-set > /dev/null
+echo -n "$result" | termux-clipboard-set > /dev/null 2>&1
 
-# ==== Info dialog ====
-termux-dialog -t "EV-data" -i "Result:
-$result
-
--  $(basename $DEBUG_FILE)
--  $(basename $CSV_FILE)
--  clipboard" > /dev/null
+# ==== d) Notification ====
+termux-notification \
+  --id "evdata" \
+  --title "EV-data updated" \
+  --content "$result" \
+  --button1-text "Show" \
+  --button1-action "$USRBIN/evnote_show.sh" \
+  --button2-text "Copy" \
+  --button2-action "$USRBIN/evnote_show.sh copy" \
+  > /dev/null 2>&1

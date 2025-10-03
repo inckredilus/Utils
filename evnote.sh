@@ -8,8 +8,8 @@ USRBIN=$HOME/bin
 {
     echo "$(basename $0) started at $(date)"
 #    echo "Timestamp: $(date "+%Y-%m-%d %H:%M")"
-    timestamp=$(date "+%d/%m %H:%M")
-    echo "Timestamp: $timestamp"
+    timestart=$(date "+%d/%m ... %H:%M")
+    echo "Timestart: $timestart"
 
 
     # Charge dialog
@@ -28,7 +28,7 @@ USRBIN=$HOME/bin
     if [ "$code_charge" = "-1" ] && [ "$code_km" = "-1" ] && \
          [ "$charge" != "null" ] && [ "$km" != "null" ] && \
          [ -n "$charge" ] && [ -n "$km" ]; then
-       echo "${timestamp}- ... ${charge}-% ${km}-" >> "$OUTFILE"
+       echo "${timestart}- ${charge}-% ${km}-" >> "$OUTFILE"
        echo "Saved note to $OUTFILE"
 
     # Show data or Copy to clipboard
