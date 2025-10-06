@@ -1,4 +1,5 @@
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/bash
+# EV charge scripts
 # Start Termux dialog to record EV data to file
 
 LOGFILE=$HOME/ev_debug.log
@@ -18,7 +19,7 @@ USRBIN=$HOME/bin
     charge=$(echo "$raw_charge" | jq -r '.text')
     echo "Charge code: $code_charge, text: $charge"
 
-    # KM dialog
+   # KM dialog
     raw_km=$(termux-dialog -n -t "Enter remaining km")
     code_km=$(echo "$raw_km" | jq -r '.code')
     km=$(echo "$raw_km" | jq -r '.text')
@@ -34,7 +35,7 @@ USRBIN=$HOME/bin
     # Show data or Copy to clipboard
        termux-notification \
        --id "evdata" \
-       --title "New EV data saved" \
+       --title "Data for EV charging started saved" \
        --content "Tap to review latest entries" \
        --button1 "Show" \
        --button1-action "sh $USRBIN/evnote_show.sh" \
@@ -43,7 +44,6 @@ USRBIN=$HOME/bin
        --button3 "Clean" \
        --button3-action "sh $USRBIN/evnote_show.sh clean" \
        --priority high
-#      --button2-action "sh $HOME/.shortcuts/evnote_show.sh copy"
     else
         termux-dialog -t "No data saved" -i "Discarding due to canceled \ 
         or empty entries" >/dev/null
@@ -53,4 +53,5 @@ USRBIN=$HOME/bin
 
     echo "Script finished"
     echo ""
+
 } >> "$LOGFILE" 2>&1

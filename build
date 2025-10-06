@@ -12,12 +12,14 @@ case "$1" in
   cp $1 /storage/emulated/0/.
   cp $1 $HOME/bin/.
   ;;
-  evnote|evnote.sh)
-  cp evnote.sh $HOME/.shortcuts/.
+  evnote|evcharge.sh|evnote.sh)
+  cp evcharge.sh $HOME/.shortcuts/.
+  cp evnote.sh $HOME/bin/.
+  cp evupdt.sh $HOME/bin/.
   cp evnote_show.sh $HOME/bin/.
   echo "copied evnote* to \$HOME/.shortcuts and \$HOME/bin"
-  chmod 750 $HOME/.shortcuts/evnote.sh
-  chmod 750 $HOME/bin/evnote_show.sh
+  chmod 750 $HOME/.shortcuts/evcharge.sh
+  chmod 750 $HOME/bin/ev*.sh
   ;;
   *) 
   if [ -f "$1" ]; then

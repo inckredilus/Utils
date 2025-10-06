@@ -12,6 +12,6 @@ These utilities are mainly aimed for using on a phone
 
 `g`	<cmd> Run a script in Utils or just cd there
 
-`evnote.sh` Prompts for EV charging data in a Termux dialog and logs to a file. 
-
 `build`	Copies utilities to where the should be called from
+
+`evnote.sh` Prompts for EV charging data in a Termux dialog and logs to a file. 
