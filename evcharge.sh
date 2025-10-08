@@ -17,8 +17,8 @@ termux-notification \
   --button1-action "sh $USRBIN/evnote.sh" \
   --button2 "Complete" \
   --button2-action "bash $USRBIN/evupdt.sh" \
-  --button3 "Clean" \
-  --button3-action "sh $USRBIN/evnote_show.sh clean" \
+  --button3 "Show" \
+  --button3-action "sh $USRBIN/evnote_show.sh" \
   --priority high 
 
 } >> "$LOGFILE" 2>&1

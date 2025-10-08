@@ -8,11 +8,25 @@ USRBIN=$HOME/bin
 
 {
     echo "$(basename $0) started at $(date)"
-#    echo "Timestamp: $(date "+%Y-%m-%d %H:%M")"
     timestart=$(date "+%d/%m ... %H:%M")
     echo "Timestart: $timestart"
 
+    # ==== Get last line in the datafile ====
+    touch $OUTFILE
+    last_line=$(tail -n 1 "$OUTFILE")
 
+    # Abort if placeholder ("...") found in file
+    if echo "$last_line" | grep -q '\.\.\.'; then
+      echo "Last line has incomplete EV data, exiting."
+      echo "...$last_line"
+      termux-dialog -m \
+         -t "Cannot add new EV data" \
+         -i "Remove or complete last EV entry first" > /dev/null
+      exit 0
+    else
+      echo  "Prompting for initial EV charging data."
+    fi
+ 
     # Charge dialog
     raw_charge=$(termux-dialog -n -t "Enter charge (%)")
     code_charge=$(echo "$raw_charge" | jq -r '.code')
@@ -35,7 +49,7 @@ USRBIN=$HOME/bin
     # Show data or Copy to clipboard
        termux-notification \
        --id "evdata" \
-       --title "Data for EV charging started saved" \
+       --title "Starting data for EV charging saved" \
        --content "Tap to review latest entries" \
        --button1 "Show" \
        --button1-action "sh $USRBIN/evnote_show.sh" \

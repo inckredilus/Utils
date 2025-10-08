@@ -15,7 +15,9 @@ USRBIN="$HOME/bin"
 timestamp=$(date '+%Y-%m-%d %H:%M:%S')
 echo "$(basename $0) started at $timestamp"
 echo "Shell: $SHELL"
+
 # ==== Get last line in the datafile ====
+touch $OUTFILE
 last_line=$(tail -n 1 "$OUTFILE")
 
 # Abort if placeholder ("...") is not found
@@ -23,7 +25,7 @@ if ! echo "$last_line" | grep -q '\.\.\.'; then
   echo "Last line already converted, exiting." 
   echo "...$last_line"
   termux-dialog -t "No data to edit" \
-     -i "Last line already converted" > /dev/null
+     -i "Last line already has conplete EV data" > /dev/null
   exit 0
 else 
   echo  "Prompting for EV charging data."
@@ -35,16 +37,16 @@ if [ ! -t 0 ]; then
 
   json=$(termux-dialog text -m \
     -t $'Mileage  Endtime  %-loaded  Range'  \
-    -i 'Enter EV charging data in the order above  and each on a new line')
+    -i 'Enter 4 EV charging data values in the order above, each on a new line, end with OK')
 
   # Extract 'text' field from JSON
   text=$(echo "$json" | jq -r '.text')
 
-  # Split lines into array
-#  mapfile -t vars <<< "$text"
-IFS=$'\n' read -r -d '' -a vars <<EOF
-$text
-EOF
+  # Split lines into array (mapfile OK in bash)
+  mapfile -t vars <<< "$text"
+#  IFS=$'\n' read -r -d '' -a vars <<EOF
+#$text
+#EOF
 
   # Assign variables
   A=${vars[0]}   # Milleage
