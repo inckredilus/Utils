@@ -14,7 +14,7 @@ USRBIN="$HOME/bin"
 # ==== a) Write to debug log ====
 timestamp=$(date '+%Y-%m-%d %H:%M:%S')
 echo "$(basename $0) started at $timestamp"
-echo "Shell: $SHELL"
+#echo "Shell: $SHELL"
 
 # ==== Get last line in the datafile ====
 touch $OUTFILE
@@ -24,8 +24,8 @@ last_line=$(tail -n 1 "$OUTFILE")
 if ! echo "$last_line" | grep -q '\.\.\.'; then
   echo "Last line already converted, exiting." 
   echo "...$last_line"
-  termux-dialog -t "No data to edit" \
-     -i "Last line already has conplete EV data" > /dev/null
+  termux-dialog -m -t "No data to edit" \
+     -i "Last line has complete EV data already." > /dev/null
   exit 0
 else 
   echo  "Prompting for EV charging data."
@@ -33,8 +33,44 @@ fi
 
 # ==== Check if we have a terminal (for widget start) ====
 if [ ! -t 0 ]; then
-  echo "Running fron a Widget, no terninal"
+  echo "Running fron a Widget, no terminal"
 
+# ==== NEW: Possible to modify initial data
+
+# Example last_line:
+# last_line="07/10 ... 10:45- 82-% 382-"
+
+# --- Extract first 3 fields ---
+read date val time <<< $(echo "$last_line" | awk '{print $1, $2, $3}')
+
+# --- Ask user for Start Date ---
+resp=$(termux-dialog text -t "Start Date" -i "$date")
+code=$(echo "$resp" | jq -r '.code')
+[ "$code" = "-2" ] && termux-toast "Canceled." && exit 1
+
+newdate=$(echo "$resp" | jq -r '.text // empty')
+[ -n "$newdate" ] && date="$newdate"
+
+# --- Ask user for Start Time ---
+resp=$(termux-dialog text -t "Start Time" -i "${time%-}")
+code=$(echo "$resp" | jq -r '.code')
+[ "$code" = "-2" ] && termux-toast "Canceled." && exit 1
+
+newtime=$(echo "$resp" | jq -r '.text // empty')
+[ -n "$newtime" ] && time="$newtime"
+
+# --- Ensure trailing dash on time ---
+[[ "$time" != *- ]] && time="${time}-"
+
+# --- Rebuild the line, preserving dummy and other columns ---
+last_line=$(echo "$last_line" | awk -v d="$date" -v t="$time" '{ $1=d; $3=t; OFS=" "; print $0 }')
+
+echo "Updated last line:"
+echo "$last_line"
+
+# ==== END NEW
+
+# ==== Enter data for competled EV charging
   json=$(termux-dialog text -m \
     -t $'Mileage  Endtime  %-loaded  Range'  \
     -i 'Enter 4 EV charging data values in the order above, each on a new line, end with OK')
@@ -94,9 +130,10 @@ if [ ! -f "$CSVFILE" ]; then
   echo "Date;Milleage;Endtime;%-loaded;Range;" > "$CSVFILE"
 fi
 # Convert dd/mm to ISO yyyy-mm-dd and format as CSV
+year=$(date +%Y)
 csv_line=$(echo "$result" \
-  | sed -E 's#^([0-9]{2})/([0-9]{2})(.*)#2025-\2-\1\3#' \
-  | sed 's/[[:space:]]\+/\;/g; s/$/;/')
+  | sed -E "s#^([0-9]{1,2})/([0-9]{1,2})(.*)#$year-\2-\1\3#" \
+  | sed "s/[[:space:]]\+/\;/g; s/$/;/")
 echo "$csv_line" >> "$CSVFILE"
 
 # ==== c) Copy to clipboard ====
@@ -107,12 +144,12 @@ termux-notification \
   --id "evdata" \
   --title "Data saved for EV charging complete" \
   --content "Tap to review or copy result" \
-  --button1 "Show" \
-  --button1-action "sh $USRBIN/evnote_show.sh" \
-  --button2 "Copy" \
-  --button2-action "sh $USRBIN/evnote_show.sh copy" \
-  --button3 "CSV" \
-  --button3-action "sh $USRBIN/evnote_show.sh csv" \
+  --button3 "Show" \
+  --button3-action "sh $USRBIN/evnote_show.sh" \
+  --button1 "Copy" \
+  --button1-action "sh $USRBIN/evnote_show.sh copy" \
+  --button2 "CSV" \
+  --button2-action "sh $USRBIN/evnote_show.sh csv" \
   --priority high
 
 else

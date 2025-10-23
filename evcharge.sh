@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-# EV charge scripts
+# EV charge scripts - main
 # Starts EV charge scripts - Start Clean Complete
 # intentdet for termux-widget startup 
 
