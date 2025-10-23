@@ -1,0 +1,78 @@
+#!/data/data/com.termux/files/usr/bin/bash
+#
+# Clean up old or stuck background processes in Termux
+# without killing Termux itself or the current shell.
+#
+# Usage:
+#   cleanup.sh            → cleans up normally
+#   cleanup.sh --dry-run  → shows what it *would* clean up
+#
+
+DRY_RUN=false
+if [ "$1" == "--dry-run" ]; then
+    DRY_RUN=true
+    echo "🧪 Running in DRY-RUN mode — no processes will be killed."
+    echo
+fi
+
+echo "🔍 Checking for old Termux background processes..."
+echo
+
+# Helper function
+run_or_print() {
+    if $DRY_RUN; then
+        echo "→ Would run: $*"
+    else
+        eval "$@" 2>/dev/null
+    fi
+}
+
+# --- 1️⃣ termux-notification ---
+if pgrep -f termux-notification >/dev/null; then
+    run_or_print pkill -f termux-notification && echo "🧭 termux-notification processes cleared."
+else
+    echo "🧭 No termux-notification processes found."
+fi
+
+# --- 2️⃣ termux-toast, termux-vibrate etc. ---
+if pgrep -f "termux-(toast|vibrate)" >/dev/null; then
+    run_or_print pkill -f "termux-(toast|vibrate)" && echo "📳 termux-toast/vibrate processes cleared."
+else
+    echo "📳 No termux-toast/vibrate processes found."
+fi
+
+# --- 3️⃣ Background scripts in $HOME ---
+if pgrep -f "/data/data/com.termux/files/home/" >/dev/null; then
+    run_or_print pkill -f "/data/data/com.termux/files/home/" && echo "📁 Background scripts in \$HOME cleared."
+else
+    echo "📁 No background scripts found in \$HOME."
+fi
+
+# --- 4️⃣ Orphaned sh processes ---
+orphans=$(ps -u $(whoami) | grep -E ' /data/data/com.termux/files/usr/bin/sh' | awk '{print $1}')
+if [ -n "$orphans" ]; then
+    echo "💀 Found orphaned sh processes:"
+    echo "$orphans"
+    for pid in $orphans; do
+        if [ "$pid" != "$$" ]; then
+            run_or_print kill "$pid" && echo "   → Killed orphaned sh process ($pid)."
+        fi
+    done
+else
+    echo "💀 No orphaned sh processes found."
+fi
+
+# --- 5️⃣ termux-dialog processes (even those launched via bash) ---
+dialog_pids=$(ps -ef | grep 'termux-dialog' | grep -v grep | awk '{print $2}')
+if [ -n "$dialog_pids" ]; then
+    echo "🗨️  Found termux-dialog processes:"
+    echo "$dialog_pids"
+    for pid in $dialog_pids; do
+        run_or_print kill "$pid" && echo "   → Killed termux-dialog process ($pid)."
+    done
+else
+    echo "🗨️  No termux-dialog processes found."
+fi
+
+echo
+echo "✅ Cleanup complete."
