@@ -8,6 +8,10 @@ kalle
 # loggfiles
 *.log
 
+# intentionally untracked folders and files
+untracked
+old
+
 #--------- System provided ignore ---------
 # paste the content above, save and exit# Python cache / temp files
 __pycache__/
