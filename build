@@ -21,6 +21,10 @@ case "$1" in
   chmod 750 $HOME/.shortcuts/evcharge.sh
   chmod 750 $HOME/bin/ev*.sh
   ;;
+  servapp|servapp.sh)
+  cp servapp.sh $HOME/.shortcuts/.
+  chmod 750 $HOME/.shortcuts/servapp.sh
+  ;;
   *) 
   if [ -f "$1" ]; then
     echo "No build defined for '$1'"
